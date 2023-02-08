@@ -48,7 +48,7 @@ runs:
       uses: actions/setup-java@v3
       with:
         java-version: ${{ inputs.java-version }}
-        distribution: ${{ inputs.distribution }}
+        distribution: ${{ inputs.java-distribution }}
           
     - name: Generate Javadoc with Maven
       if: inputs.project == 'maven'
