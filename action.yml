@@ -1,0 +1,79 @@
+name: Deploy javadoc to Github Pages
+description: "A GitHub action that publishes javadocumentation to GitHub Pages automatically"
+branding:
+  icon: "book-open"
+  color: "white"
+
+
+inputs:
+  GITHUB_TOKEN:
+    description: "The GitHub token the GitHub repository"
+    required: true
+
+  branch: 
+    description: "The branch of which the javadoc contents will be stored"
+    required: false
+    default: "gh-pages"
+    type: string
+
+  java-version:
+    description: "Java version of which your project is using"
+    required: true
+    default: "17"
+    type: string
+  
+  java-distribution:
+    description: "The distribution of which your JDK uses"
+    required: false
+    default: "adopt"
+
+  project:
+    description: "The type of project of the target project (Maven or Gradle)"
+    required: false
+    default: maven
+    type: choice
+    options:
+      - maven
+      - gradle
+  
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+          fetch-depth: 0
+
+    - name: Setup JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.distribution }}
+          
+    - name: Generate Javadoc with Maven
+      if: inputs.project == 'maven'
+      run: mvn javadoc:aggregate
+      shell: bash
+
+    - name: Generate Javadoc with Gradle
+      if: inputs.project == 'gradle'
+      run: gradle javadoc
+      shell: bash
+        
+    - name: Publish javadoc to GitHub Pages 🚀 via Maven
+      if: inputs.project == 'maven'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.GITHUB_TOKEN }}
+        publish_branch: ${{ inputs.branch }}
+        publish_dir: target/site/apidocs
+        force_orphan: true
+    
+    - name: Publish javadoc to GitHub Pages 🚀 via Gradle
+      if: inputs.project == 'gradle'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.GITHUB_TOKEN }}
+        publish_branch: ${{ inputs.branch }}
+        publish_dir: build/docs/javadoc
+        force_orphan: true
